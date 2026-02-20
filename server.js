@@ -62,6 +62,54 @@ app.post("/signup", async (req, res) => {
     }
 });
 
+// ===== Post schema =====
+const postSchema = new mongoose.Schema({
+    userId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User"
+    },
+    username: String,
+    imageUrl: String,
+    caption: String,
+    likes: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User"
+    }],
+    createdAt: {
+        type: Date,
+        default: Date.now
+    }
+});
+
+const Post = mongoose.model("Post", postSchema);
+// ===== Create Post =====
+app.post("/create-post", async (req, res) => {
+    const { userId, username, imageUrl, caption } = req.body;
+
+    try {
+        const newPost = new Post({
+            userId,
+            username,
+            imageUrl,
+            caption
+        });
+
+        await newPost.save();
+
+        res.json(newPost);
+
+    } catch (err) {
+        res.status(500).json({ message: "Error creating post" });
+    }
+});// ===== Get All Posts =====
+app.get("/posts", async (req, res) => {
+    try {
+        const posts = await Post.find().sort({ createdAt: -1 });
+        res.json(posts);
+    } catch (err) {
+        res.status(500).json({ message: "Error fetching posts" });
+    }
+});
 // ===== Login =====
 app.post("/login", async (req, res) => {
     const { email, password } = req.body;
